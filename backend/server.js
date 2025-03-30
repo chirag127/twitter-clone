@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const AppError = require('./utils/appError');
+const authRouter = require('./routes/authRoutes');
 
 const app = express();
 
@@ -9,9 +11,28 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Routes
+app.use('/api/v1/auth', authRouter);
+
 // Basic Route
 app.get('/', (req, res) => {
   res.send('Twitter Clone Backend API');
+});
+
+// Handle unhandled routes
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  err.statusCode = err.statusCode || 500;
+  err.status = err.status || 'error';
+
+  res.status(err.statusCode).json({
+    status: err.status,
+    message: err.message,
+  });
 });
 
 // Database Connection
