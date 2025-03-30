@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/RootNavigator';
+import { AppStackParamList } from '../navigation/RootNavigator'; // Import correct ParamList
 import Tweet from '../components/Tweet'; // Import the Tweet component
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Feed'>;
+type Props = NativeStackScreenProps<AppStackParamList, 'Feed'>; // Use correct ParamList
 
 // Dummy data for tweets
 const dummyTweets = [

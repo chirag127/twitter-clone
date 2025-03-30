@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/RootNavigator';
+import { AppStackParamList } from '../navigation/RootNavigator'; // Import correct ParamList
 import Tweet from '../components/Tweet'; // Assuming we'll show tweets here
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
+type Props = NativeStackScreenProps<AppStackParamList, 'Profile'>; // Use correct ParamList
 
 // Dummy user data (replace with actual data fetching later)
 const dummyUser = {

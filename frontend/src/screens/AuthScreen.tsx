@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { RootStackParamList } from '../navigation/RootNavigator';
+import { AuthStackParamList } from '../navigation/RootNavigator'; // Import correct ParamList
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { signupUser, loginUser } from '../services/api'; // Import API functions
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Auth'>;
+type Props = NativeStackScreenProps<AuthStackParamList, 'Auth'>; // Use correct ParamList
 
 const AuthScreen = ({ navigation }: Props) => {
   const [email, setEmail] = useState('');
@@ -45,12 +45,12 @@ const AuthScreen = ({ navigation }: Props) => {
       // Store the token securely
       await AsyncStorage.setItem('authToken', token);
       await AsyncStorage.setItem('userData', JSON.stringify(data.user)); // Store user data if needed
+// Navigate to the main part of the app (e.g., Feed)
+// The RootNavigator will automatically switch stacks when the token is set.
+// navigation.replace('Feed'); // No need to call this directly here
 
-      // Navigate to the main part of the app (e.g., Feed)
-      // You might want to reset the navigation stack here
-      navigation.replace('Feed'); // Replace Auth screen so user can't go back
-
-    } catch (err: any) {
+} catch (err: any) {
+console.error("Authentication Error:", err.response?.data || err.message);
       console.error("Authentication Error:", err.response?.data || err.message);
       setError(err.response?.data?.message || 'An unexpected error occurred.');
     } finally {
