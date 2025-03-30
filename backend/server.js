@@ -36,7 +36,7 @@ app.use((err, req, res, next) => {
 });
 
 // Database Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/twitter_clone_dev';
+const MONGODB_URI = process.env.MONGODB_URI;
 
 const connectDB = async () => {
   try {

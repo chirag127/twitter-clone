@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Box, Text, Image, HStack, VStack, Icon, Pressable, Avatar } from 'native-base'; // Use NativeBase components
 import { AntDesign, Feather, MaterialIcons } from '@expo/vector-icons';
 
 interface TweetProps {
@@ -18,6 +19,11 @@ interface TweetProps {
   isRetweeted: boolean;
 }
 
+// Define colors for dark theme actions
+const actionColor = "gray.500";
+const likedColor = "pink.500"; // Use NativeBase color scale
+const retweetedColor = "green.500";
+
 const Tweet: React.FC<TweetProps> = ({
   content,
   author,
@@ -29,112 +35,79 @@ const Tweet: React.FC<TweetProps> = ({
   isRetweeted,
 }) => {
   return (
-    <View style={styles.container}>
-      <View style={styles.avatarContainer}>
-        <Image
-          source={{ uri: author.avatar }}
-          style={styles.avatar}
-        />
-      </View>
-      <View style={styles.contentContainer}>
-        <View style={styles.header}>
-          <Text style={styles.name}>{author.name}</Text>
-          <Text style={styles.handle}>@{author.handle}</Text>
-          <Text style={styles.timestamp}>· {timestamp}</Text>
-        </View>
-        <Text style={styles.content}>{content}</Text>
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.actionItem}>
-            <Feather name="message-circle" size={18} color="#657786" />
-            <Text style={styles.actionText}>{replies}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionItem}>
-            <MaterialIcons
-              name="repeat"
-              size={20}
-              color={isRetweeted ? "#17BF63" : "#657786"}
-            />
-            <Text style={[styles.actionText, isRetweeted && styles.retweeted]}>
-              {retweets}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionItem}>
-            <AntDesign
-              name="heart"
-              size={18}
-              color={isLiked ? "#E0245E" : "#657786"}
-            />
-            <Text style={[styles.actionText, isLiked && styles.liked]}>
-              {likes}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionItem}>
-            <Feather name="share" size={18} color="#657786" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+    // Use Box for container with padding and dark border
+    <Box borderBottomWidth={1} borderColor="gray.800" px={4} py={3}>
+      <HStack space={3}>
+        {/* Avatar */}
+        <Avatar size="md" source={{ uri: author.avatar }} />
+
+        {/* Content Column */}
+        <VStack flex={1}>
+          {/* Header */}
+          <HStack space={2} alignItems="center" mb={1}>
+            <Text color="white" fontWeight="bold" fontSize="md">{author.name}</Text>
+            <Text color="gray.500" fontSize="sm">@{author.handle}</Text>
+            <Text color="gray.500" fontSize="sm">· {timestamp}</Text>
+            {/* TODO: Add Verified Badge if applicable */}
+            {/* TODO: Add More Options (...) button */}
+          </HStack>
+
+          {/* Tweet Content */}
+          <Text color="white" fontSize="md" mb={2}>{content}</Text>
+          {/* TODO: Add Image/Video display if present */}
+
+          {/* Actions */}
+          <HStack justifyContent="space-between" mt={2} pr={10}> {/* Added paddingRight */}
+            {/* Reply */}
+            <Pressable _hover={{ bg: "blue.500:alpha.10" }} borderRadius="full" p={1}>
+              <HStack alignItems="center" space={1}>
+                <Icon as={Feather} name="message-circle" size="sm" color={actionColor} />
+                <Text fontSize="xs" color={actionColor}>{replies > 0 ? replies : ''}</Text>
+              </HStack>
+            </Pressable>
+
+            {/* Retweet */}
+            <Pressable _hover={{ bg: "green.500:alpha.10" }} borderRadius="full" p={1}>
+              <HStack alignItems="center" space={1}>
+                <Icon
+                  as={MaterialIcons}
+                  name="repeat"
+                  size="md" // Slightly larger
+                  color={isRetweeted ? retweetedColor : actionColor}
+                />
+                <Text fontSize="xs" color={isRetweeted ? retweetedColor : actionColor}>
+                  {retweets > 0 ? retweets : ''}
+                </Text>
+              </HStack>
+            </Pressable>
+
+            {/* Like */}
+            <Pressable _hover={{ bg: "pink.500:alpha.10" }} borderRadius="full" p={1}>
+              <HStack alignItems="center" space={1}>
+                <Icon
+                  as={AntDesign}
+                  name={isLiked ? "heart" : "hearto"} // Use filled/outline icon
+                  size="sm"
+                  color={isLiked ? likedColor : actionColor}
+                />
+                <Text fontSize="xs" color={isLiked ? likedColor : actionColor}>
+                  {likes > 0 ? likes : ''}
+                </Text>
+              </HStack>
+            </Pressable>
+
+            {/* Share */}
+            <Pressable _hover={{ bg: "blue.500:alpha.10" }} borderRadius="full" p={1}>
+               <Icon as={Feather} name="share" size="sm" color={actionColor} />
+            </Pressable>
+          </HStack>
+        </VStack>
+      </HStack>
+    </Box>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E1E8ED',
-  },
-  avatarContainer: {
-    marginRight: 10,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  contentContainer: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    marginBottom: 5,
-  },
-  name: {
-    fontWeight: 'bold',
-    marginRight: 5,
-  },
-  handle: {
-    color: '#657786',
-    marginRight: 5,
-  },
-  timestamp: {
-    color: '#657786',
-  },
-  content: {
-    fontSize: 16,
-    lineHeight: 22,
-    marginBottom: 10,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginRight: 60,
-  },
-  actionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionText: {
-    color: '#657786',
-    marginLeft: 5,
-    fontSize: 14,
-  },
-  liked: {
-    color: '#E0245E',
-  },
-  retweeted: {
-    color: '#17BF63',
-  },
-});
+// StyleSheet might not be needed anymore if all styling is done via NativeBase props
+// const styles = StyleSheet.create({});
 
 export default Tweet;

@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AppStackParamList } from '../navigation/RootNavigator'; // Import correct ParamList
-import Tweet from '../components/Tweet'; // Assuming we'll show tweets here
+import { AppStackParamList } from '../navigation/RootNavigator';
+import Tweet from '../components/Tweet';
+import { Box, Text, Image, ScrollView, VStack, HStack, Avatar } from 'native-base'; // Use NativeBase components
 
-type Props = NativeStackScreenProps<AppStackParamList, 'Profile'>; // Use correct ParamList
+type Props = NativeStackScreenProps<AppStackParamList, 'Profile'>;
 
 // Dummy user data (replace with actual data fetching later)
 const dummyUser = {
@@ -50,92 +51,47 @@ const ProfileScreen = ({ route, navigation }: Props) => {
   const user = dummyUser;
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.profileHeader}>
-        <Image source={{ uri: user.avatar }} style={styles.avatar} />
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.handle}>@{user.handle}</Text>
-        <Text style={styles.bio}>{user.bio}</Text>
-        <View style={styles.statsContainer}>
-          <Text style={styles.statsText}><Text style={styles.statsNumber}>{user.followingCount}</Text> Following</Text>
-          <Text style={styles.statsText}><Text style={styles.statsNumber}>{user.followersCount}</Text> Followers</Text>
-        </View>
-      </View>
+    // Use ScrollView within a Box for dark background
+    <Box flex={1} bg="black">
+      <ScrollView>
+        {/* TODO: Add Profile Header Image */}
+        <VStack alignItems="center" p={4} borderBottomWidth={1} borderColor="gray.800">
+          <Avatar size="xl" source={{ uri: user.avatar }} mb={3} mt={-12} /* Offset for header image overlap */ borderWidth={4} borderColor="black" />
+          <Text fontSize="xl" fontWeight="bold" color="white">{user.name}</Text>
+          <Text fontSize="md" color="gray.500" mb={2}>@{user.handle}</Text>
+          <Text fontSize="md" textAlign="center" mb={3} color="white">{user.bio}</Text>
+          <HStack space={4}>
+            <Text color="white"><Text fontWeight="bold">{user.followingCount}</Text> Following</Text>
+            <Text color="white"><Text fontWeight="bold">{user.followersCount}</Text> Followers</Text>
+          </HStack>
+          {/* TODO: Add Edit Profile Button */}
+        </VStack>
 
-      <View style={styles.tweetsContainer}>
-        <Text style={styles.sectionTitle}>Tweets</Text>
-        {dummyProfileTweets.map((tweet) => (
-           <Tweet
-            key={tweet.id} // Use key prop when mapping
-            id={tweet.id}
-            content={tweet.content}
-            author={tweet.author}
-            timestamp={tweet.timestamp}
-            likes={tweet.likes}
-            retweets={tweet.retweets}
-            replies={tweet.replies}
-            isLiked={tweet.isLiked}
-            isRetweeted={tweet.isRetweeted}
-          />
-        ))}
-      </View>
-    </ScrollView>
+        {/* TODO: Add Profile Tabs (Tweets, Replies, Media, Likes) */}
+
+        <VStack>
+          {/* <Text fontSize="lg" fontWeight="bold" p={4} color="white">Tweets</Text> */}
+          {dummyProfileTweets.map((tweet) => (
+             <Tweet
+              key={tweet.id} // Use key prop when mapping
+              id={tweet.id}
+              content={tweet.content}
+              author={tweet.author}
+              timestamp={tweet.timestamp}
+              likes={tweet.likes}
+              retweets={tweet.retweets}
+              replies={tweet.replies}
+              isLiked={tweet.isLiked}
+              isRetweeted={tweet.isRetweeted}
+            />
+          ))}
+        </VStack>
+      </ScrollView>
+    </Box>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  profileHeader: {
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E1E8ED',
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 10,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  handle: {
-    fontSize: 16,
-    color: '#657786',
-    marginBottom: 10,
-  },
-  bio: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 15,
-    color: '#14171A',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-  },
-  statsText: {
-    fontSize: 16,
-    color: '#657786',
-    marginHorizontal: 10,
-  },
-  statsNumber: {
-    fontWeight: 'bold',
-    color: '#14171A',
-  },
-  tweetsContainer: {
-    marginTop: 10,
-  },
-  sectionTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      paddingHorizontal: 15,
-      marginBottom: 10,
-  }
-});
+// StyleSheet might not be needed if NativeBase handles all styling
+// const styles = StyleSheet.create({});
 
 export default ProfileScreen;
