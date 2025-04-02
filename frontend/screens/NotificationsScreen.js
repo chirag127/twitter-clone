@@ -4,39 +4,35 @@ import {
     Text,
     StyleSheet,
     FlatList,
+    TouchableOpacity,
+    Image,
     ActivityIndicator,
     RefreshControl,
-    TouchableOpacity,
-    ScrollView,
-    Image,
-    TextInput,
-    Dimensions,
     SafeAreaView,
     StatusBar,
+    TextInput,
+    Dimensions,
     Platform,
 } from "react-native";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-
-// Components
-import Tweet from "../components/Tweet";
+import { useFocusEffect } from "@react-navigation/native";
 
 // Store
-import { useTweetStore } from "../store/tweetStore";
 import { useAuthStore } from "../store/authStore";
 import { useUserStore } from "../store/userStore";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const IS_TABLET = SCREEN_WIDTH >= 768;
 
-const HomeScreen = ({ navigation }) => {
-    const { fetchTweets, tweets, isLoading, error } = useTweetStore();
+const NotificationsScreen = ({ navigation }) => {
     const { user } = useAuthStore();
-    const { fetchRecommendedUsers } = useUserStore();
+    const { getUserProfile } = useUserStore();
 
+    const [activeTab, setActiveTab] = useState("all");
+    const [notifications, setNotifications] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [activeTab, setActiveTab] = useState("for-you");
-    const [searchQuery, setSearchQuery] = useState("");
+    const [error, setError] = useState(null);
     const [trendingTopics, setTrendingTopics] = useState([
         {
             id: 1,
@@ -88,42 +84,132 @@ const HomeScreen = ({ navigation }) => {
 
     useFocusEffect(
         useCallback(() => {
-            loadTweets();
-            loadUsers();
-        }, [])
+            loadNotifications();
+        }, [activeTab])
     );
 
-    const loadTweets = async () => {
-        await fetchTweets();
-    };
+    const loadNotifications = async () => {
+        setLoading(true);
+        setError(null);
 
-    const loadUsers = async () => {
         try {
-            const users = await fetchRecommendedUsers();
-            if (users && users.length > 0) {
-                setRecommendedUsers(users);
-            }
+            // In a real app, fetch notifications from API
+            // For now, use mock data
+            setTimeout(() => {
+                const mockNotifications = [
+                    {
+                        id: 1,
+                        type: "pinned_post",
+                        community: "ElonMusk Friends",
+                        content: "Can I get a GM?😀 pic.x.com/2dHKQtXt34",
+                        timestamp: new Date(
+                            Date.now() - 3600000 * 24
+                        ).toISOString(),
+                    },
+                    {
+                        id: 2,
+                        type: "pinned_post",
+                        community: "ElonMusk Friends",
+                        content: "Be completely honest",
+                        timestamp: new Date(
+                            Date.now() - 3600000 * 48
+                        ).toISOString(),
+                    },
+                    {
+                        id: 3,
+                        type: "pinned_post",
+                        community: "ElonMusk Friends",
+                        content:
+                            "Do you believe in aliens? pic.x.com/IMONfULZqu",
+                        timestamp: new Date(
+                            Date.now() - 3600000 * 72
+                        ).toISOString(),
+                    },
+                    {
+                        id: 4,
+                        type: "pinned_post",
+                        community: "ElonMusk Friends",
+                        content: "Be honest!",
+                        timestamp: new Date(
+                            Date.now() - 3600000 * 96
+                        ).toISOString(),
+                    },
+                    {
+                        id: 5,
+                        type: "pinned_post",
+                        community: "ElonMusk Friends",
+                        content:
+                            "Do you love nature ? Yes or No pic.x.com/FiAYBUQLi6",
+                        timestamp: new Date(
+                            Date.now() - 3600000 * 120
+                        ).toISOString(),
+                    },
+                    {
+                        id: 6,
+                        type: "pinned_post",
+                        community: "ElonMusk Friends",
+                        content:
+                            "What's the first thought that comes to mind seeing this scenery? pic.x.com/Qv3slxJyIQ",
+                        timestamp: new Date(
+                            Date.now() - 3600000 * 144
+                        ).toISOString(),
+                    },
+                    {
+                        id: 7,
+                        type: "pinned_post",
+                        community: "ElonMusk Friends",
+                        content:
+                            "Should Elon Musk debate critics publicly or ignore them? A) Debate publicly B) Ignore them pic.x.com/3GzZ3RqJxW",
+                        timestamp: new Date(
+                            Date.now() - 3600000 * 168
+                        ).toISOString(),
+                    },
+                    {
+                        id: 8,
+                        type: "mention",
+                        user: {
+                            name: "Grok",
+                            username: "grok",
+                            profile_image_url:
+                                "https://ui-avatars.com/api/?name=Grok&background=random",
+                        },
+                        content: "@singhalt127 Check out this new feature!",
+                        timestamp: new Date(
+                            Date.now() - 3600000 * 21
+                        ).toISOString(),
+                    },
+                ];
+
+                let filteredNotifications = mockNotifications;
+
+                if (activeTab === "verified") {
+                    filteredNotifications = mockNotifications.filter((n) =>
+                        ["verified_followed", "verified_liked"].includes(n.type)
+                    );
+                } else if (activeTab === "mentions") {
+                    filteredNotifications = mockNotifications.filter(
+                        (n) => n.type === "mention"
+                    );
+                }
+
+                setNotifications(filteredNotifications);
+                setLoading(false);
+            }, 1000);
         } catch (error) {
-            console.error("Failed to load recommended users:", error);
+            console.error("Failed to load notifications:", error);
+            setError("Failed to load notifications. Please try again.");
+            setLoading(false);
         }
     };
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await Promise.all([loadTweets(), loadUsers()]);
+        await loadNotifications();
         setRefreshing(false);
-    };
-
-    const handleTweetPress = (tweetId) => {
-        navigation.navigate("Tweet", { tweetId });
     };
 
     const handleProfilePress = (userId) => {
         navigation.navigate("Profile", { userId });
-    };
-
-    const handleNewTweet = () => {
-        navigation.navigate("NewTweet");
     };
 
     const navigateToSearch = () => {
@@ -194,6 +280,68 @@ const HomeScreen = ({ navigation }) => {
         </View>
     );
 
+    // Render notification item
+    const renderNotificationItem = ({ item }) => {
+        if (item.type === "pinned_post") {
+            return (
+                <TouchableOpacity style={styles.notificationItem}>
+                    <View style={styles.notificationIconContainer}>
+                        <Ionicons name="people" size={16} color="#1D9BF0" />
+                    </View>
+                    <View style={styles.notificationContent}>
+                        <Text style={styles.notificationHeader}>
+                            New pinned post in{" "}
+                            <Text style={styles.highlightedText}>
+                                {item.community}
+                            </Text>
+                        </Text>
+                        <Text style={styles.notificationText}>
+                            {item.content}
+                        </Text>
+                    </View>
+                </TouchableOpacity>
+            );
+        } else if (item.type === "mention") {
+            return (
+                <TouchableOpacity style={styles.notificationItem}>
+                    <Image
+                        source={{ uri: item.user.profile_image_url }}
+                        style={styles.notificationUserImage}
+                    />
+                    <View style={styles.notificationContent}>
+                        <Text style={styles.notificationHeader}>
+                            <Text style={styles.highlightedText}>
+                                {item.user.name}
+                            </Text>
+                            <Text style={styles.notificationUsername}>
+                                {" "}
+                                @{item.user.username}
+                            </Text>
+                        </Text>
+                        <Text style={styles.notificationText}>
+                            {item.content}
+                        </Text>
+                    </View>
+                </TouchableOpacity>
+            );
+        }
+
+        // Default notification template
+        return (
+            <TouchableOpacity style={styles.notificationItem}>
+                <View style={styles.notificationIconContainer}>
+                    <Ionicons name="notifications" size={16} color="#1D9BF0" />
+                </View>
+                <View style={styles.notificationContent}>
+                    <Text style={styles.notificationHeader}>Notification</Text>
+                    <Text style={styles.notificationText}>
+                        {item.content || "New activity on your account"}
+                    </Text>
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <StatusBar barStyle="light-content" />
@@ -208,7 +356,7 @@ const HomeScreen = ({ navigation }) => {
                         {renderSidebarItem({
                             icon: "home",
                             text: "Home",
-                            active: true,
+                            active: false,
                             onPress: () => navigation.navigate("Home"),
                         })}
                         {renderSidebarItem({
@@ -218,10 +366,11 @@ const HomeScreen = ({ navigation }) => {
                             onPress: () => navigation.navigate("Search"),
                         })}
                         {renderSidebarItem({
-                            icon: "notifications-outline",
+                            icon: "notifications",
                             text: "Notifications",
-                            active: false,
-                            onPress: () => navigation.navigate("Feed"),
+                            active: true,
+                            onPress: () =>
+                                console.log("Already on Notifications"),
                         })}
                         {renderSidebarItem({
                             icon: "mail-outline",
@@ -259,7 +408,7 @@ const HomeScreen = ({ navigation }) => {
 
                         <TouchableOpacity
                             style={styles.tweetButton}
-                            onPress={handleNewTweet}
+                            onPress={() => navigation.navigate("NewTweet")}
                         >
                             {IS_TABLET ? (
                                 <Text style={styles.tweetButtonText}>Post</Text>
@@ -335,179 +484,94 @@ const HomeScreen = ({ navigation }) => {
                                 />
                             </TouchableOpacity>
                             <Text style={styles.logoText}>𝕏</Text>
+                            <Ionicons
+                                name="settings-outline"
+                                size={24}
+                                color="#E7E9EA"
+                            />
                         </View>
                     )}
 
-                    {/* Main Header */}
+                    {/* Header */}
                     <View style={styles.header}>
-                        {IS_TABLET ? (
-                            <Text style={styles.headerTitle}>Home</Text>
-                        ) : (
-                            <View style={styles.tabsContainer}>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.tab,
-                                        activeTab === "for-you" &&
-                                            styles.activeTab,
-                                    ]}
-                                    onPress={() => setActiveTab("for-you")}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.tabText,
-                                            activeTab === "for-you" &&
-                                                styles.activeTabText,
-                                        ]}
-                                    >
-                                        For you
-                                    </Text>
-                                    {activeTab === "for-you" && (
-                                        <View
-                                            style={styles.activeTabIndicator}
-                                        />
-                                    )}
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.tab,
-                                        activeTab === "following" &&
-                                            styles.activeTab,
-                                    ]}
-                                    onPress={() => setActiveTab("following")}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.tabText,
-                                            activeTab === "following" &&
-                                                styles.activeTabText,
-                                        ]}
-                                    >
-                                        Following
-                                    </Text>
-                                    {activeTab === "following" && (
-                                        <View
-                                            style={styles.activeTabIndicator}
-                                        />
-                                    )}
-                                </TouchableOpacity>
-                            </View>
-                        )}
-                    </View>
-
-                    {/* Tabs - Only on tablet */}
-                    {IS_TABLET && (
-                        <View style={styles.tabsContainer}>
-                            <TouchableOpacity
-                                style={[
-                                    styles.tab,
-                                    activeTab === "for-you" && styles.activeTab,
-                                ]}
-                                onPress={() => setActiveTab("for-you")}
-                            >
-                                <Text
-                                    style={[
-                                        styles.tabText,
-                                        activeTab === "for-you" &&
-                                            styles.activeTabText,
-                                    ]}
-                                >
-                                    For you
-                                </Text>
-                                {activeTab === "for-you" && (
-                                    <View style={styles.activeTabIndicator} />
-                                )}
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[
-                                    styles.tab,
-                                    activeTab === "following" &&
-                                        styles.activeTab,
-                                ]}
-                                onPress={() => setActiveTab("following")}
-                            >
-                                <Text
-                                    style={[
-                                        styles.tabText,
-                                        activeTab === "following" &&
-                                            styles.activeTabText,
-                                    ]}
-                                >
-                                    Following
-                                </Text>
-                                {activeTab === "following" && (
-                                    <View style={styles.activeTabIndicator} />
-                                )}
-                            </TouchableOpacity>
-                        </View>
-                    )}
-
-                    {/* Today's News */}
-                    <View style={styles.todaysNewsContainer}>
-                        <Text style={styles.todaysNewsTitle}>Today's News</Text>
-
-                        <TouchableOpacity style={styles.newsItem}>
-                            <View style={styles.newsItemContent}>
-                                <Text style={styles.newsItemTime}>
-                                    16 hours ago · News · 201K posts
-                                </Text>
-                                <Text style={styles.newsItemTitle}>
-                                    Marine Le Pen Convicted, Banned from 2027
-                                    Election
-                                </Text>
-                            </View>
-                            <Image
-                                source={{ uri: "https://picsum.photos/60" }}
-                                style={styles.newsItemImage}
-                            />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.newsItem}>
-                            <View style={styles.newsItemContent}>
-                                <Text style={styles.newsItemTime}>
-                                    20 hours ago · Entertainment · 327K posts
-                                </Text>
-                                <Text style={styles.newsItemTitle}>
-                                    Kim Soohyun's Press Conference: Admission
-                                    and Lawsuit
-                                </Text>
-                            </View>
-                            <Image
-                                source={{
-                                    uri: "https://picsum.photos/60?random=1",
-                                }}
-                                style={styles.newsItemImage}
-                            />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.newsItem}>
-                            <View style={styles.newsItemContent}>
-                                <Text style={styles.newsItemTime}>
-                                    18 hours ago · Entertainment · 1.7K posts
-                                </Text>
-                                <Text style={styles.newsItemTitle}>
-                                    Verdansk Returns: Call of Duty Warzone
-                                    Community Reacts
-                                </Text>
-                            </View>
-                            <Image
-                                source={{
-                                    uri: "https://picsum.photos/60?random=2",
-                                }}
-                                style={styles.newsItemImage}
+                        <Text style={styles.headerTitle}>Notifications</Text>
+                        <TouchableOpacity style={styles.settingsButton}>
+                            <Ionicons
+                                name="settings-outline"
+                                size={20}
+                                color="#E7E9EA"
                             />
                         </TouchableOpacity>
                     </View>
 
-                    {/* Tweets List */}
+                    {/* Tabs */}
+                    <View style={styles.tabsContainer}>
+                        <TouchableOpacity
+                            style={[
+                                styles.tab,
+                                activeTab === "all" && styles.activeTab,
+                            ]}
+                            onPress={() => setActiveTab("all")}
+                        >
+                            <Text
+                                style={[
+                                    styles.tabText,
+                                    activeTab === "all" && styles.activeTabText,
+                                ]}
+                            >
+                                All
+                            </Text>
+                            {activeTab === "all" && (
+                                <View style={styles.activeTabIndicator} />
+                            )}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.tab,
+                                activeTab === "verified" && styles.activeTab,
+                            ]}
+                            onPress={() => setActiveTab("verified")}
+                        >
+                            <Text
+                                style={[
+                                    styles.tabText,
+                                    activeTab === "verified" &&
+                                        styles.activeTabText,
+                                ]}
+                            >
+                                Verified
+                            </Text>
+                            {activeTab === "verified" && (
+                                <View style={styles.activeTabIndicator} />
+                            )}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.tab,
+                                activeTab === "mentions" && styles.activeTab,
+                            ]}
+                            onPress={() => setActiveTab("mentions")}
+                        >
+                            <Text
+                                style={[
+                                    styles.tabText,
+                                    activeTab === "mentions" &&
+                                        styles.activeTabText,
+                                ]}
+                            >
+                                Mentions
+                            </Text>
+                            {activeTab === "mentions" && (
+                                <View style={styles.activeTabIndicator} />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Notifications List */}
                     <FlatList
-                        data={tweets}
-                        keyExtractor={(item) => item._id}
-                        renderItem={({ item }) => (
-                            <Tweet
-                                tweet={item}
-                                onPress={() => handleTweetPress(item._id)}
-                            />
-                        )}
+                        data={notifications}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={renderNotificationItem}
                         refreshControl={
                             <RefreshControl
                                 refreshing={refreshing}
@@ -518,11 +582,16 @@ const HomeScreen = ({ navigation }) => {
                         ListHeaderComponent={<View style={styles.listHeader} />}
                         ListFooterComponent={<View style={styles.listFooter} />}
                         ListEmptyComponent={
-                            !isLoading ? (
+                            !loading ? (
                                 <View style={styles.emptyContainer}>
+                                    <Text style={styles.emptyTitle}>
+                                        Nothing to see here — yet
+                                    </Text>
                                     <Text style={styles.emptyText}>
-                                        No tweets yet. Follow some users to see
-                                        their tweets here!
+                                        From reactions to your posts to updates
+                                        on what's happening and more, this is
+                                        where all the action unfolds. Exciting,
+                                        isn't it?
                                     </Text>
                                 </View>
                             ) : null
@@ -530,7 +599,7 @@ const HomeScreen = ({ navigation }) => {
                     />
 
                     {/* Loading Indicator */}
-                    {isLoading && !refreshing && (
+                    {loading && !refreshing && (
                         <View style={styles.loadingContainer}>
                             <ActivityIndicator size="large" color="#1D9BF0" />
                         </View>
@@ -542,23 +611,13 @@ const HomeScreen = ({ navigation }) => {
                             <Text style={styles.errorText}>{error}</Text>
                             <TouchableOpacity
                                 style={styles.retryButton}
-                                onPress={loadTweets}
+                                onPress={loadNotifications}
                             >
                                 <Text style={styles.retryButtonText}>
                                     Retry
                                 </Text>
                             </TouchableOpacity>
                         </View>
-                    )}
-
-                    {/* New Tweet Button - Mobile only */}
-                    {!IS_TABLET && (
-                        <TouchableOpacity
-                            style={styles.floatingTweetButton}
-                            onPress={handleNewTweet}
-                        >
-                            <Ionicons name="add" size={24} color="#fff" />
-                        </TouchableOpacity>
                     )}
                 </View>
 
@@ -766,15 +825,19 @@ const styles = StyleSheet.create({
         borderRadius: 16,
     },
     header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
         paddingHorizontal: 16,
         paddingVertical: 12,
-        borderBottomWidth: IS_TABLET ? 1 : 0,
-        borderBottomColor: "#2F3336",
     },
     headerTitle: {
         fontSize: 20,
         fontWeight: "bold",
         color: "#E7E9EA",
+    },
+    settingsButton: {
+        padding: 8,
     },
     tabsContainer: {
         flexDirection: "row",
@@ -806,43 +869,44 @@ const styles = StyleSheet.create({
         backgroundColor: "#1D9BF0",
         borderRadius: 2,
     },
-    todaysNewsContainer: {
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: "#2F3336",
-    },
-    todaysNewsTitle: {
-        fontSize: 20,
-        fontWeight: "bold",
-        color: "#E7E9EA",
-        marginHorizontal: 16,
-        marginBottom: 12,
-    },
-    newsItem: {
+    notificationItem: {
         flexDirection: "row",
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        padding: 16,
         borderBottomWidth: 1,
         borderBottomColor: "#2F3336",
     },
-    newsItemContent: {
-        flex: 1,
+    notificationIconContainer: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: "rgba(29, 155, 240, 0.1)",
+        alignItems: "center",
+        justifyContent: "center",
         marginRight: 12,
     },
-    newsItemTime: {
-        color: "#71767B",
-        fontSize: 13,
+    notificationUserImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 12,
+    },
+    notificationContent: {
+        flex: 1,
+    },
+    notificationHeader: {
+        color: "#E7E9EA",
         marginBottom: 4,
     },
-    newsItemTitle: {
+    notificationText: {
         color: "#E7E9EA",
-        fontSize: 16,
-        fontWeight: "bold",
+        fontSize: 15,
     },
-    newsItemImage: {
-        width: 60,
-        height: 60,
-        borderRadius: 8,
+    notificationUsername: {
+        color: "#71767B",
+    },
+    highlightedText: {
+        color: "#E7E9EA",
+        fontWeight: "bold",
     },
     listHeader: {
         height: 8,
@@ -854,15 +918,23 @@ const styles = StyleSheet.create({
         padding: 24,
         alignItems: "center",
     },
+    emptyTitle: {
+        color: "#E7E9EA",
+        fontSize: 20,
+        fontWeight: "bold",
+        marginBottom: 8,
+        textAlign: "center",
+    },
     emptyText: {
         color: "#71767B",
         textAlign: "center",
-        fontSize: 16,
+        fontSize: 15,
+        lineHeight: 22,
     },
     loadingContainer: {
-        paddingVertical: 20,
-        borderTopWidth: 1,
-        borderTopColor: "#2F3336",
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
     },
     errorContainer: {
         padding: 16,
@@ -882,22 +954,6 @@ const styles = StyleSheet.create({
     retryButtonText: {
         color: "#fff",
         fontWeight: "bold",
-    },
-    floatingTweetButton: {
-        position: "absolute",
-        right: 16,
-        bottom: 16,
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: "#1D9BF0",
-        alignItems: "center",
-        justifyContent: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-        elevation: 5,
     },
     rightSidebar: {
         width: 350,
@@ -1042,4 +1098,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default HomeScreen;
+export default NotificationsScreen;

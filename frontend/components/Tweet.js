@@ -8,7 +8,7 @@ import {
     Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { useNavigation } from "@react-navigation/native";
 
 // Store
@@ -38,6 +38,29 @@ const Tweet = ({ tweet, onPress }) => {
     const formattedDate = mainTweet?.createdAt
         ? format(new Date(mainTweet.createdAt), "MMM d, yyyy · h:mm a")
         : "";
+
+    // Format relative time (e.g., "2h", "3d")
+    const relativeTime = mainTweet?.createdAt
+        ? formatDistanceToNow(new Date(mainTweet.createdAt), {
+              addSuffix: false,
+          })
+        : "";
+
+    // Simplified relative time (e.g., "2h", "3d")
+    const shortRelativeTime = relativeTime
+        .replace(" seconds", "s")
+        .replace(" minutes", "m")
+        .replace(" minute", "m")
+        .replace(" hours", "h")
+        .replace(" hour", "h")
+        .replace(" days", "d")
+        .replace(" day", "d")
+        .replace(" months", "mo")
+        .replace(" month", "mo")
+        .replace(" years", "y")
+        .replace(" year", "y")
+        .replace("about ", "")
+        .replace("less than ", "<");
 
     const handleLike = async () => {
         await likeTweet(mainTweet._id);
@@ -75,7 +98,7 @@ const Tweet = ({ tweet, onPress }) => {
         <TouchableOpacity
             style={styles.container}
             onPress={() => onPress && onPress(mainTweet)}
-            activeOpacity={0.8}
+            activeOpacity={0.9}
         >
             {isRetweet && (
                 <View style={styles.retweetLabel}>
@@ -90,7 +113,9 @@ const Tweet = ({ tweet, onPress }) => {
                 <TouchableOpacity onPress={handleProfilePress}>
                     <Image
                         source={{
-                            uri: `https://ui-avatars.com/api/?name=${mainTweet.user.name}&background=random`,
+                            uri:
+                                mainTweet.user.profileImageUrl ||
+                                `https://ui-avatars.com/api/?name=${mainTweet.user.name}&background=random`,
                         }}
                         style={styles.avatar}
                     />
@@ -98,61 +123,109 @@ const Tweet = ({ tweet, onPress }) => {
 
                 <View style={styles.tweetBody}>
                     <View style={styles.tweetHeader}>
-                        <TouchableOpacity onPress={handleProfilePress}>
-                            <Text style={styles.name}>
-                                {mainTweet.user.name}
+                        <View style={styles.userInfo}>
+                            <TouchableOpacity onPress={handleProfilePress}>
+                                <Text style={styles.name} numberOfLines={1}>
+                                    {mainTweet.user.name}
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleProfilePress}>
+                                <Text style={styles.username} numberOfLines={1}>
+                                    @{mainTweet.user.username}
+                                </Text>
+                            </TouchableOpacity>
+                            <Text style={styles.dot}>·</Text>
+                            <Text style={styles.timeAgo}>
+                                {shortRelativeTime}
                             </Text>
-                            <Text style={styles.username}>
-                                @{mainTweet.user.username}
-                            </Text>
+                        </View>
+
+                        <TouchableOpacity style={styles.moreButton}>
+                            <Ionicons
+                                name="ellipsis-horizontal"
+                                size={16}
+                                color="#657786"
+                            />
                         </TouchableOpacity>
                     </View>
 
                     <Text style={styles.content}>{mainTweet.content}</Text>
 
-                    <Text style={styles.date}>{formattedDate}</Text>
-
                     <View style={styles.actions}>
-                        <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={handleLike}
-                        >
-                            <Ionicons
-                                name={isLiked ? "heart" : "heart-outline"}
-                                size={18}
-                                color={isLiked ? "#E0245E" : "#657786"}
-                            />
-                            {mainTweet.likes?.length > 0 && (
-                                <Text
-                                    style={[
-                                        styles.actionText,
-                                        isLiked && styles.likedText,
-                                    ]}
-                                >
-                                    {mainTweet.likes.length}
-                                </Text>
-                            )}
+                        <TouchableOpacity style={styles.actionButton}>
+                            <View style={styles.actionIconContainer}>
+                                <Ionicons
+                                    name="chatbubble-outline"
+                                    size={18}
+                                    color="#657786"
+                                />
+                            </View>
+                            <Text style={styles.actionText}>
+                                {mainTweet.replies?.length || 0}
+                            </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
                             style={styles.actionButton}
                             onPress={handleRetweet}
                         >
-                            <Ionicons
-                                name={"repeat"}
-                                size={18}
-                                color={isRetweeted ? "#17BF63" : "#657786"}
-                            />
-                            {mainTweet.retweetedBy?.length > 0 && (
-                                <Text
-                                    style={[
-                                        styles.actionText,
-                                        isRetweeted && styles.retweetedText,
-                                    ]}
-                                >
-                                    {mainTweet.retweetedBy.length}
-                                </Text>
-                            )}
+                            <View
+                                style={[
+                                    styles.actionIconContainer,
+                                    isRetweeted &&
+                                        styles.retweetedIconContainer,
+                                ]}
+                            >
+                                <Ionicons
+                                    name={"repeat"}
+                                    size={18}
+                                    color={isRetweeted ? "#17BF63" : "#657786"}
+                                />
+                            </View>
+                            <Text
+                                style={[
+                                    styles.actionText,
+                                    isRetweeted && styles.retweetedText,
+                                ]}
+                            >
+                                {mainTweet.retweetedBy?.length || 0}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={handleLike}
+                        >
+                            <View
+                                style={[
+                                    styles.actionIconContainer,
+                                    isLiked && styles.likedIconContainer,
+                                ]}
+                            >
+                                <Ionicons
+                                    name={isLiked ? "heart" : "heart-outline"}
+                                    size={18}
+                                    color={isLiked ? "#E0245E" : "#657786"}
+                                />
+                            </View>
+                            <Text
+                                style={[
+                                    styles.actionText,
+                                    isLiked && styles.likedText,
+                                ]}
+                            >
+                                {mainTweet.likes?.length || 0}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.actionButton}>
+                            <View style={styles.actionIconContainer}>
+                                <Ionicons
+                                    name="share-outline"
+                                    size={18}
+                                    color="#657786"
+                                />
+                            </View>
                         </TouchableOpacity>
 
                         {isOwner && (
@@ -160,11 +233,13 @@ const Tweet = ({ tweet, onPress }) => {
                                 style={styles.actionButton}
                                 onPress={handleDelete}
                             >
-                                <Ionicons
-                                    name="trash-outline"
-                                    size={18}
-                                    color="#657786"
-                                />
+                                <View style={styles.actionIconContainer}>
+                                    <Ionicons
+                                        name="trash-outline"
+                                        size={18}
+                                        color="#657786"
+                                    />
+                                </View>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -176,7 +251,7 @@ const Tweet = ({ tweet, onPress }) => {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 12,
+        padding: 16,
         borderBottomWidth: 1,
         borderBottomColor: "#E1E8ED",
         backgroundColor: "#fff",
@@ -196,10 +271,10 @@ const styles = StyleSheet.create({
         flexDirection: "row",
     },
     avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        marginRight: 10,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        marginRight: 12,
     },
     tweetBody: {
         flex: 1,
@@ -207,40 +282,71 @@ const styles = StyleSheet.create({
     tweetHeader: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 5,
+        justifyContent: "space-between",
+        marginBottom: 4,
+    },
+    userInfo: {
+        flexDirection: "row",
+        alignItems: "center",
+        flexWrap: "wrap",
+        flex: 1,
     },
     name: {
         fontWeight: "bold",
         fontSize: 15,
-        marginRight: 5,
+        marginRight: 4,
     },
     username: {
         color: "#657786",
         fontSize: 14,
     },
+    dot: {
+        color: "#657786",
+        marginHorizontal: 4,
+    },
+    timeAgo: {
+        color: "#657786",
+        fontSize: 14,
+    },
+    moreButton: {
+        padding: 4,
+    },
     content: {
-        fontSize: 15,
-        lineHeight: 20,
-        marginBottom: 8,
+        fontSize: 16,
+        lineHeight: 22,
+        marginBottom: 12,
     },
     date: {
         color: "#657786",
         fontSize: 14,
-        marginBottom: 8,
+        marginBottom: 12,
     },
     actions: {
         flexDirection: "row",
-        justifyContent: "flex-start",
+        justifyContent: "space-between",
         marginTop: 8,
+        paddingRight: 48,
     },
     actionButton: {
         flexDirection: "row",
         alignItems: "center",
-        marginRight: 24,
+    },
+    actionIconContainer: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    likedIconContainer: {
+        backgroundColor: "rgba(224, 36, 94, 0.1)",
+    },
+    retweetedIconContainer: {
+        backgroundColor: "rgba(23, 191, 99, 0.1)",
     },
     actionText: {
-        fontSize: 12,
-        marginLeft: 4,
+        fontSize: 13,
+        marginLeft: 2,
         color: "#657786",
     },
     likedText: {

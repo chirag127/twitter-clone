@@ -2,6 +2,7 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
+import { Dimensions } from "react-native";
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
@@ -15,6 +16,9 @@ import FollowScreen from "../screens/FollowScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const IS_TABLET = SCREEN_WIDTH >= 768;
+
 // Home Stack Navigator
 const HomeStack = () => {
     return (
@@ -22,25 +26,27 @@ const HomeStack = () => {
             <Stack.Screen
                 name="Feed"
                 component={HomeScreen}
-                options={{ headerTitle: "Home" }}
+                options={{
+                    headerShown: false, // Hide header for HomeScreen
+                }}
             />
             <Stack.Screen
                 name="Tweet"
                 component={TweetScreen}
-                options={{ headerTitle: "Tweet" }}
+                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="UserProfile"
                 component={ProfileScreen}
                 options={({ route }) => ({
-                    headerTitle: route.params?.username || "Profile",
+                    headerShown: false,
                 })}
             />
             <Stack.Screen
                 name="Follow"
                 component={FollowScreen}
                 options={({ route }) => ({
-                    headerTitle: route.params?.title || "Follow",
+                    headerShown: false,
                 })}
             />
         </Stack.Navigator>
@@ -54,18 +60,18 @@ const SearchStack = () => {
             <Stack.Screen
                 name="SearchMain"
                 component={SearchScreen}
-                options={{ headerTitle: "Search" }}
+                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="SearchTweet"
                 component={TweetScreen}
-                options={{ headerTitle: "Tweet" }}
+                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="SearchUserProfile"
                 component={ProfileScreen}
                 options={({ route }) => ({
-                    headerTitle: route.params?.username || "Profile",
+                    headerShown: false,
                 })}
             />
         </Stack.Navigator>
@@ -79,23 +85,23 @@ const ProfileStack = () => {
             <Stack.Screen
                 name="MyProfile"
                 component={ProfileScreen}
-                options={{ headerTitle: "My Profile" }}
+                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="EditProfile"
                 component={EditProfileScreen}
-                options={{ headerTitle: "Edit Profile" }}
+                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="ProfileTweet"
                 component={TweetScreen}
-                options={{ headerTitle: "Tweet" }}
+                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="ProfileFollow"
                 component={FollowScreen}
                 options={({ route }) => ({
-                    headerTitle: route.params?.title || "Follow",
+                    headerShown: false,
                 })}
             />
         </Stack.Navigator>
@@ -129,6 +135,8 @@ const MainNavigator = () => {
                 tabBarActiveTintColor: "#1DA1F2",
                 tabBarInactiveTintColor: "gray",
                 headerShown: false,
+                // Hide bottom tab bar on tablets since we have the side navigation
+                tabBarStyle: IS_TABLET ? { display: "none" } : undefined,
             })}
         >
             <Tab.Screen name="Home" component={HomeStack} />
